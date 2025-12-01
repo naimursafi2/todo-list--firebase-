@@ -1,0 +1,7 @@
+@import "tailwindcss";
+input{
+    @apply border-2 border-green-800  text-4xl rounded-xl w-full;
+}
+.add{
+    @apply bg-green-500 px-4 py-1 rounded-2xl cursor-pointer text-white 
+}

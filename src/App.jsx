@@ -1,48 +1,64 @@
 import React, { useEffect, useState } from 'react'
-import { getDatabase, push, ref, set, onValue  } from "firebase/database";
-
+import { getDatabase, onValue, push, ref, remove, set } from "firebase/database";
 
 const App = () => {
-  let[todoData, setTodoData] = useState("");
-  let[todoList, setTodoList] = useState([]);
-  const db = getDatabase();
+    let[todoData, setTodoData] = useState("");
+    let[todoList, setTodoList] = useState([]);
 
+    const db = getDatabase();
+    const handleAdd = ()=>{
 
-  const handleAdd = () => {
-    set(push(ref(db, "todoList")), {
-      todoData,
-    });
- }
+        if(!todoData){
+            return console.log("task is required");
+            
+        }
+        set(push(ref(db,"todolist")),{
+            data: todoData,
+            
+        }).then(()=>{
+            setTodoData("")
+        })     
+    }
 
+    const handleDelete = (id)=>{
+     remove(ref(db, "todolist/"+id))   
+    //  console.log(id);
+     
+    }
 
 useEffect(()=>{
-  onValue(ref(db, "todoList"), (snapshot) => {
-    let arr = [];
-  snapshot.forEach((item)=>{
-      arr.push(item.val())
-  })
-     setTodoList(arr);  
-});
+    onValue(ref(db,"todolist"),(snapshot)=>{
+        let arr = [];
+          snapshot.forEach((item)=>{
+            arr.push({...item.val(), id: item.key})
+            
+        })
+        setTodoList(arr);    
+    })
 },[])
 
 
-
   return (
-    <div>
-      <input onChange={(e) => setTodoData(e.target.value)} type="text" placeholder='name plz'/>
-      <button onClick={handleAdd}>Add</button>
-      <div>
-        <ul>
+    <div className='w-sm flex flex-col m-auto items-center ' >
+        <h1 className='text-4xl mb-4 bg-amber-400 rounded-2xl mt-2 px-3 '>To Do List</h1>
+    <div className="flex gap-2 w-full">
+      <input onChange={(e)=>setTodoData(e.target.value)} type=" text" value={todoData} placeholder='input your task'/>
+      <button onClick={handleAdd}  className='add'>Add</button>
+    </div>
+    <div className='flex flex-col w-full gap-2.5 bg-slate-600 p-5 mt-10 rounded-2xl '>
         {
-          todoList.map((item)=>(
-          <li>
-            <p>{item.todoData}</p>
-          </li>
-
-         ))}
-          
-        </ul>
-      </div>
+        todoList.length > 0
+        ?
+            todoList.map((item)=>(
+                <div key={item.id} className='flex bg-slate-400 py-2 rounded-2xl justify-between items-center gap-2'>
+                    <p>{item.data} </p>
+                    <button onClick={()=>handleDelete (item.id)} className='bg-red-600 text-white px-2 py-2 rounded-2xl text-xs cursor-pointer '>Delete</button>
+                </div>
+            ))
+            :
+            <p>No task found</p>
+}
+    </div>
     </div>
   )
 }
