@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { getDatabase, onValue, push, ref, remove, set } from "firebase/database";
+import { getDatabase, onValue, push, ref, remove, set, update } from "firebase/database";
 
 const App = () => {
     let[todoData, setTodoData] = useState("");
     let[todoList, setTodoList] = useState([]);
+    let[enableEdit, setEnableEdit] = useState("")
+    let[updateData, setUpdateData] = useState("")
 
     const db = getDatabase();
     const handleAdd = ()=>{
@@ -25,7 +27,14 @@ const App = () => {
     //  console.log(id);
      
     }
-
+const handleUpdate = ()=>{
+    update(ref(db, "todolist/"+enableEdit),{
+        data: updateData
+    }).then(()=>{
+        setEnableEdit("");
+        setUpdateData("");
+    })
+}
 useEffect(()=>{
     onValue(ref(db,"todolist"),(snapshot)=>{
         let arr = [];
@@ -51,12 +60,30 @@ useEffect(()=>{
         ?
             todoList.map((item)=>(
                 <div key={item.id} className='flex bg-slate-400 py-2 rounded-2xl justify-between items-center gap-2'>
+                   {
+                    enableEdit == item.id 
+                    ?
+                    <input type='text'onChange={(e)=>setUpdateData(e.target.value)} value={updateData}/>
+                    :
                     <p>{item.data} </p>
+                   }
+                    <div className='flex gap-1.5'>
+                        {
+                            enableEdit == item.id
+                            ?
+                            <button onClick={handleUpdate} className='bg-green-600 text-white px-2 py-2 rounded-2xl text-xs cursor-pointer '>update</button>
+                            :
+
+                        <>
+                        <button onClick={()=>{setEnableEdit(item.id); setUpdateData(item.data)}} className='bg-yellow-600 text-white px-2 py-2 rounded-2xl text-xs cursor-pointer '>Edit</button>
                     <button onClick={()=>handleDelete (item.id)} className='bg-red-600 text-white px-2 py-2 rounded-2xl text-xs cursor-pointer '>Delete</button>
+                   </>
+                        }
+                    </div>
                 </div>
             ))
             :
-            <p>No task found</p>
+            <p className='text-white text-center text-2xl'>No task found</p>
 }
     </div>
     </div>
